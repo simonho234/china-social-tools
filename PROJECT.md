@@ -41,13 +41,17 @@ loguru>=0.7.0          # 日志
 
 ```
 china-social-tools/
-├── README.md              # 项目说明（已发布）
-├── app.py               # Streamlit Web界面（已发布）
-├── requirements.txt     # 依赖列表（已发布）
-├── config.example.yaml  # 配置模板（已发布）
+├── README.md              # 项目说明
+├── app.py                 # Streamlit Web界面
+├── requirements.txt       # 依赖列表
+├── config.example.yaml    # 配置模板
 ├── tools/
-│   └── social_publisher.py  # 核心发布器
-└── PROJECT.md         # 本文件
+│   ├── social_publisher.py  # 基础发布器
+│   └── advanced.py          # P0高级模块(自动登录/AI配图/内容生成/热榜)
+├── data/                   # 数据目录
+│   ├── cookies.json        # Cookie存储
+│   └── images/            # 图片存储
+└── PROJECT.md             # 本文件
 ```
 
 ## 🔄 开发流程
