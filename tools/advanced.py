@@ -3002,6 +3002,8 @@ class TaskScheduler:
     2. 灵活的时间配置
     3. 任务队列管理
     4. 执行日志记录
+    5. APScheduler集成，真正的定时执行
+    6. 持久化任务状态
     """
     
     def __init__(self, log_level: str = "INFO"):
@@ -3011,13 +3013,17 @@ class TaskScheduler:
         # 路径配置
         self.base_dir = Path(__file__).parent.parent
         self.tasks_file = self.base_dir / "data" / "scheduled_tasks.json"
+        self.state_file = self.base_dir / "data" / "scheduler_state.json"
         self.tasks_file.parent.mkdir(parents=True, exist_ok=True)
         
         # 加载任务
         self.tasks = self._load_tasks()
         
-        # 调度器
-        self.scheduler = None
+        # APScheduler 初始化
+        self.scheduler = self._init_scheduler()
+        
+        # 任务运行状态
+        self._running = False
         
         # 任务类型映射
         self.task_handlers = {
@@ -3028,6 +3034,205 @@ class TaskScheduler:
         }
         
         logger.info("TaskScheduler初始化完成")
+    
+    def _init_scheduler(self):
+        """初始化 APScheduler"""
+        from apscheduler.schedulers.background import BackgroundScheduler
+        from apscheduler.executors.pool import ThreadPoolExecutor
+        import apscheduler.events
+        
+        # 创建调度器
+        scheduler = BackgroundScheduler(
+            executors={
+                'default': ThreadPoolExecutor(max_workers=5)
+            },
+            job_defaults={
+                'coalesce': True,
+                'max_instances': 1,
+                'misfire_grace_time': 300  # 5分钟容忍时间
+            }
+        )
+        
+        # 添加任务监听器
+        scheduler.add_listener(
+            self._job_listener,
+            apscheduler.events.EVENT_JOB_EXECUTED | apscheduler.events.EVENT_JOB_ERROR
+        )
+        
+        return scheduler
+    
+    def _job_listener(self, event):
+        """任务执行监听器"""
+        job = event.job
+        if job:
+            task_id = job.id
+            logger.info(f"任务 {task_id} 执行完成: {event.exception}")
+    
+    def start(self):
+        """启动调度器"""
+        if self._running:
+            logger.warning("调度器已经在运行中")
+            return
+        
+        # 添加所有启用的任务到调度器
+        self._schedule_all_tasks()
+        
+        # 启动调度器
+        self.scheduler.start()
+        self._running = True
+        
+        # 保存调度器状态
+        self._save_state()
+        
+        logger.info("调度器已启动")
+    
+    def stop(self):
+        """停止调度器"""
+        if not self._running:
+            logger.warning("调度器未在运行")
+            return
+        
+        # 关闭调度器
+        self.scheduler.shutdown(wait=True)
+        self._running = False
+        
+        # 保存状态
+        self._save_state()
+        
+        logger.info("调度器已停止")
+    
+    def _schedule_all_tasks(self):
+        """将所有任务添加到调度器"""
+        for task in self.tasks:
+            if task.get("enabled", False):
+                self._schedule_task(task)
+    
+    def _schedule_task(self, task: Dict):
+        """将单个任务添加到调度器"""
+        from apscheduler.triggers.cron import CronTrigger
+        from apscheduler.triggers.date import DateTrigger
+        from apscheduler.triggers.interval import IntervalTrigger
+        from datetime import datetime
+        
+        task_id = task["id"]
+        schedule = task.get("schedule", "")
+        
+        # 解析调度表达式
+        trigger = self._parse_schedule(schedule)
+        
+        if trigger:
+            # 添加任务到调度器
+            self.scheduler.add_job(
+                func=self._execute_task_wrapper,
+                trigger=trigger,
+                id=task_id,
+                name=task.get("name", task_id),
+                replace_existing=True,
+                kwargs={"task_id": task_id}
+            )
+            
+            # 计算下次执行时间
+            try:
+                task["next_run"] = trigger.get_next_fire_time(datetime.now()).isoformat()
+            except Exception:
+                task["next_run"] = None
+            
+            logger.info(f"任务已调度: {task['name']} - {schedule}")
+        else:
+            logger.warning(f"无法解析调度表达式: {schedule}")
+    
+    def _parse_schedule(self, schedule: str):
+        """解析调度表达式"""
+        from apscheduler.triggers.cron import CronTrigger
+        from apscheduler.triggers.date import DateTrigger
+        from apscheduler.triggers.interval import IntervalTrigger
+        from datetime import datetime
+        
+        if not schedule:
+            return None
+        
+        # HH:MM 格式 (每天固定时间)
+        if len(schedule) == 5 and schedule.count(":") == 1:
+            try:
+                hour, minute = schedule.split(":")
+                return CronTrigger(hour=int(hour), minute=int(minute))
+            except ValueError:
+                return None
+        
+        # cron 表达式
+        parts = schedule.split()
+        if len(parts) >= 5:
+            return CronTrigger(
+                minute=parts[0] if parts[0] != '*' else None,
+                hour=parts[1] if parts[1] != '*' else None,
+                day=parts[2] if parts[2] != '*' else None,
+                month=parts[3] if parts[3] != '*' else None,
+                day_of_week=parts[4] if parts[4] != '*' else None
+            )
+        
+        # interval 格式 (如 "1h", "30m", "1d")
+        if len(schedule) > 1 and schedule.endswith(('s', 'm', 'h', 'd')):
+            try:
+                value = int(schedule[:-1])
+                unit = schedule[-1]
+                if unit == 's':
+                    return IntervalTrigger(seconds=value)
+                elif unit == 'm':
+                    return IntervalTrigger(minutes=value)
+                elif unit == 'h':
+                    return IntervalTrigger(hours=value)
+                elif unit == 'd':
+                    return IntervalTrigger(days=value)
+            except ValueError:
+                return None
+        
+        return None
+    
+    def _execute_task_wrapper(self, task_id: str):
+        """任务执行包装器"""
+        task = next((t for t in self.tasks if t["id"] == task_id), None)
+        if not task:
+            logger.error(f"任务不存在: {task_id}")
+            return
+        
+        logger.info(f"执行定时任务: {task['name']}")
+        
+        try:
+            handler = self.task_handlers.get(task["task_type"])
+            if not handler:
+                logger.error(f"未知任务类型: {task['task_type']}")
+                return
+            
+            result = handler(task["config"])
+            
+            # 更新任务状态
+            task["last_run"] = datetime.now().isoformat()
+            task["run_count"] = task.get("run_count", 0) + 1
+            self._save_tasks()
+            
+            # 更新下次执行时间
+            job = self.scheduler.get_job(task_id)
+            if job:
+                next_run = job.next_run_time
+                if next_run:
+                    task["next_run"] = next_run.isoformat()
+            
+            logger.info(f"任务执行成功: {task['name']}")
+            
+        except Exception as e:
+            logger.error(f"任务执行失败: {task['name']} - {e}")
+    
+    def _save_state(self):
+        """保存调度器状态"""
+        try:
+            state = {
+                "running": self._running,
+                "timestamp": datetime.now().isoformat()
+            }
+            with open(self.state_file, 'w', encoding='utf-8') as f:
+                json.dump(state, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            logger.error(f"保存调度器状态失败: {e}")
     
     def _load_tasks(self) -> List[Dict]:
         """加载任务配置"""
@@ -3083,6 +3288,10 @@ class TaskScheduler:
         self.tasks.append(task)
         self._save_tasks()
         
+        # 如果调度器正在运行,立即调度任务
+        if self._running and enabled:
+            self._schedule_task(task)
+        
         logger.info(f"添加任务: {name} ({task_type})")
         return task
     
@@ -3092,6 +3301,10 @@ class TaskScheduler:
         self.tasks = [t for t in self.tasks if t["id"] != task_id]
         
         if len(self.tasks) < original_count:
+            # 如果调度器正在运行,从调度器中移除任务
+            if self._running:
+                self.scheduler.remove_job(task_id)
+            
             self._save_tasks()
             logger.info(f"删除任务: {task_id}")
             return True
@@ -3103,6 +3316,11 @@ class TaskScheduler:
             if task["id"] == task_id:
                 task["enabled"] = True
                 self._save_tasks()
+                
+                # 如果调度器正在运行,立即调度任务
+                if self._running:
+                    self._schedule_task(task)
+                
                 return True
         return False
     
@@ -3112,6 +3330,11 @@ class TaskScheduler:
             if task["id"] == task_id:
                 task["enabled"] = False
                 self._save_tasks()
+                
+                # 如果调度器正在运行,从调度器中移除任务
+                if self._running:
+                    self.scheduler.remove_job(task_id)
+                
                 return True
         return False
     
