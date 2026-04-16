@@ -13,6 +13,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from tools.social_publisher import SocialMediaManager
+from tools.advanced import AutoLogin, ImageGenerator, ContentGenerator, ContentCollector
 
 # 页面配置
 st.set_page_config(
