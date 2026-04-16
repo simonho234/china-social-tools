@@ -1,0 +1,23 @@
+# 复制此文件为 config.yaml 并填入你的配置
+
+# 今日头条
+toutiao:
+  phone: "your_phone_number"
+  password: "your_password"
+
+# 小红书
+xiaohongshu:
+  phone: "your_phone_number"
+  password: "your_password"
+
+# AI API
+openai:
+  api_key: "sk-your-openai-key"
+  
+anthropic:
+  api_key: "sk-ant-your-anthropic-key"
+
+# 可选: 加密货币交易
+hyperliquid:
+  wallet_address: "0x..."
+  private_key: "0x..."
