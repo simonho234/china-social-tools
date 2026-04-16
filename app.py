@@ -13,7 +13,10 @@ from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from tools.social_publisher import SocialMediaManager
-from tools.advanced import AutoLogin, ImageGenerator, ContentGenerator, ContentCollector
+from tools.advanced import (
+    AutoLogin, ImageGenerator, ContentGenerator, ContentCollector,
+    XiaohongshuPublisher, TaskScheduler, ImageProvider
+)
 
 # 页面配置
 st.set_page_config(
@@ -61,6 +64,25 @@ if feature == "📝 发布内容":
     
     # 内容输入
     content = st.text_area("📝 内容", height=200, placeholder="输入要发布的内容...")
+    
+    # AI生成内容选项
+    st.markdown("---")
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        ai_topic = st.text_input("🤖 AI生成", placeholder="输入主题，让AI帮你生成内容...")
+    with col2:
+        if st.button("✨ 生成", use_container_width=True):
+            if ai_topic:
+                with st.spinner("AI生成中..."):
+                    generator = ContentGenerator()
+                    content = generator.generate(ai_topic)
+                    if content:
+                        st.success(f"✓ 已生成 {len(content)} 字")
+                        st.text_area("📝 内容（已生成）", value=content, height=200)
+                    else:
+                        st.error("❌ 生成失败")
+            else:
+                st.warning("请输入主题")
     
     # 配图选项
     image_option = st.radio("🖼️ 配图", ["🤖 AI生成", "📁 本地上传"])
