@@ -12,6 +12,14 @@ from .social_publisher import (
     ToutiaoPublisher,
     SocialMediaManager,
 )
+# 视频上传器
+from .video_uploader import (
+    DouyinUploader,
+    VideoMetadata,
+    UploadResult,
+    VideoStatus,
+    upload_video,
+)
 
 __all__ = [
     "AutoLogin",
@@ -21,4 +29,9 @@ __all__ = [
     "XiaohongshuPublisher",
     "ToutiaoPublisher",
     "SocialMediaManager",
+    "DouyinUploader",
+    "VideoMetadata",
+    "UploadResult",
+    "VideoStatus",
+    "upload_video",
 ]
