@@ -10,7 +10,7 @@
 - `app.py` - Streamlit Web 界面
 - `requirements.txt` - 依赖包含 apscheduler>=6.10.0
 
-## 已完成任务 (2026-04-18)
+## 已完成任务 (2026-04-19)
 
 ### ✅ 1. 集成 APScheduler 实现定时任务
 - TaskScheduler 已集成 APScheduler
@@ -25,6 +25,12 @@
 
 ### ✅ 3. 模块导入修复
 - 添加 tools/__init__.py 支持 `from tools import *`
+
+### ✅ 4. 添加抖音视频上传器
+- 新增 DouyinUploader 类
+- 支持 VideoMetadata 视频元数据
+- 支持批量上传
+- 更新 README 文档
 
 ## 需要完成的任务
 
