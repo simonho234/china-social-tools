@@ -95,9 +95,13 @@ class ToutiaoPublisher:
 class XiaohongshuPublisher:
     """小红书发布器"""
     
+    BASE_URL = "https://creator.xiaohongshu.com"
+    
     def __init__(self, phone: str = None, password: str = None):
         self.phone = phone or os.getenv("XIAOHONGSHU_PHONE")
         self.password = password or os.getenv("XIAOHONGSHU_PASSWORD")
+        self.driver = None
+        self._logged_in = False
         
     def publish(self, title: str, content: str, images: list = None) -> dict:
         """发布小红书"""
@@ -116,9 +120,83 @@ class XiaohongshuPublisher:
     
     def _generate_tags(self, content: str) -> list:
         """生成热门标签"""
-        # 简单实现，实际可以用AI
-        keywords = ["#", "#生活", "#分享"]
-        return keywords
+        # 基于内容提取关键词作为标签
+        import re
+        words = re.findall(r'\w+', content)
+        # 常见标签
+        common_tags = ["生活", "分享", "好物", "教程", "打卡", "日常"]
+        
+        # 简单标签匹配
+        tags = []
+        for tag in common_tags:
+            if tag in content:
+                tags.append(f"#{tag}")
+        
+        if not tags:
+            tags = ["#生活", "#分享"]
+        
+        return tags[:10]  # 最多10个标签
+    
+    def set_driver(self, driver):
+        """设置WebDriver"""
+        self.driver = driver
+    
+    def login(self, driver=None) -> bool:
+        """登录小红书"""
+        if driver:
+            self.driver = driver
+        
+        if not self.driver:
+            logger.error("请先设置WebDriver")
+            return False
+        
+        if not self.phone or not self.password:
+            logger.error("请配置手机号和密码")
+            return False
+        
+        try:
+            import time
+            logger.info(f"开始登录小红书: {self.phone}")
+            
+            # 访问创作者中心
+            self.driver.get(self.BASE_URL)
+            time.sleep(2)
+            
+            # 点击登录
+            login_btn = self.driver.find_element("xpath", "//button[text()='登录']")
+            login_btn.click()
+            time.sleep(1)
+            
+            # 输入手机号
+            phone_input = self.driver.find_element("xpath", "//input[@placeholder='请输入手机号']")
+            phone_input.send_keys(self.phone)
+            time.sleep(0.5)
+            
+            # 输入密码
+            pwd_input = self.driver.find_element("xpath", "//input[@type='password']")
+            pwd_input.send_keys(self.password)
+            time.sleep(0.5)
+            
+            # 点击登录
+            submit = self.driver.find_element("xpath", "//button[@type='submit']")
+            submit.click()
+            time.sleep(3)
+            
+            self._logged_in = True
+            logger.info("小红书登录成功!")
+            return True
+            
+        except Exception as e:
+            logger.error(f"登录失败: {e}")
+            return False
+    
+    def get_stats(self) -> dict:
+        """获取账号统计"""
+        return {
+            "fans": 0,
+            "likes": 0,
+            "notes": 0
+        }
 
 
 class SocialMediaManager:

@@ -31,7 +31,8 @@
 |------|------|------|
 | 今日头条 | ✅ 可用 | 自动发布微头条/图文 |
 | 抖音 | ✅ 可用 | 视频上传发布 |
-| 小红书 | 🔄 开发中 | 自动发布图文 |
+| 小红书 | ✅ 可用 | 图文笔记发布 |
+| 快手 | ✅ 可用 | 视频上传发布 |
 | 微信公众号 | 📋 计划中 | 文章发布 |
 
 ## 🚀 快速开始
@@ -224,6 +225,39 @@ videos = [
 results = uploader.upload_batch(videos, delay=5)
 ```
 
+### 7. 快手视频上传
+
+支持自动上传视频到快手:
+```python
+from tools import KuaishouUploader, KuaishouVideoMetadata
+
+# 准备视频元数据
+metadata = KuaishouVideoMetadata(
+    file_path="/path/to/video.mp4",
+    title="我的视频",
+    description="这是测试视频内容",
+    tags=["测试", "教程", "科技"]
+)
+
+# 上传视频
+uploader = KuaishouUploader(phone="xxx", password="xxx")
+uploader.set_driver(driver)
+result = uploader.upload(metadata)
+
+print(f"上传结果: {result.success}")
+if result.success:
+    print(f"视频链接: {result.video_url}")
+```
+
+批量上传:
+```python
+videos = [
+    KuaishouVideoMetadata(file_path="video1.mp4", title="视频1"),
+    KuaishouVideoMetadata(file_path="video2.mp4", title="视频2"),
+]
+results = uploader.upload_batch(videos, delay=5)
+```
+
 ## 🛠 技术栈
 
 - **Python 3.9+** - 编程语言
@@ -242,9 +276,10 @@ china-social-tools/
 ├── app.py                 # Streamlit Web界面
 ├── requirements.txt       # 依赖列表
 ├── config.example.yaml    # 配置模板
-├── tools/
+├── tools
 │   ├── social_publisher.py  # 基础发布器
 │   ├── video_uploader.py   # 抖音视频上传器
+│   ├── kuaishou_uploader.py # 快手视频上传器
 │   └── advanced.py          # 高级功能
 │       ├── AutoLogin         # 自动登录
 │       ├── ImageGenerator   # AI配图

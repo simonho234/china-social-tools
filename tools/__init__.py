@@ -10,6 +10,7 @@ from .advanced import (
 # 基础发布器
 from .social_publisher import (
     ToutiaoPublisher,
+    XiaohongshuPublisher,
     SocialMediaManager,
 )
 # 视频上传器
@@ -19,6 +20,13 @@ from .video_uploader import (
     UploadResult,
     VideoStatus,
     upload_video,
+)
+# 快手上传器
+from .kuaishou_uploader import (
+    KuaishouUploader,
+    KuaishouVideoMetadata,
+    KuaishouUploadResult,
+    quick_upload,
 )
 
 __all__ = [
@@ -34,4 +42,8 @@ __all__ = [
     "UploadResult",
     "VideoStatus",
     "upload_video",
+    "KuaishouUploader",
+    "KuaishouVideoMetadata",
+    "KuaishouUploadResult",
+    "quick_upload",
 ]
