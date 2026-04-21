@@ -1,0 +1,58 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        
+    - name: Install linting tools
+      run: |
+        pip install flake8 black isort
+        
+    - name: Check code format with Black
+      run: |
+        black --check tools/ app.py || true
+        
+    - name: Check import order with isort
+      run: |
+        isort --check-only --diff tools/ app.py || true
+        
+    - name: Lint with flake8
+      run: |
+        flake8 tools/ app.py --max-line-length=120 --ignore=E501,W503 || true
+
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        
+    - name: Install security tools
+      run: |
+        pip install bandit safety
+        
+    - name: Run bandit security check
+      run: |
+        bandit -r tools/ -f txt || true
+        
+    - name: Check dependencies security
+      run: |
+        safety check --json || true
