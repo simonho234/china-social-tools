@@ -23,19 +23,20 @@
 ### 待解决Issues
 - [x] Issue #2: 添加B站(Bilibili)视频上传支持 ✅ 已完成
 - [x] Issue #1: 添加微信公众号文章发布支持 ✅ 已完成
-- [ ] Issue #3: 如何配置代理访问国内平台
+- [x] Issue #3: 如何配置代理访问国内平台 ✅ 已完成
 
 ### 本次更新
-- 添加了B站(bilibili_uploader.py)视频上传器 - 支持WebDriver和API两种模式
+- 添加了B站(bilibili_uploader.py)视频上传器
 - 添加了微信公众号(wechat_publisher.py)文章发布器
+- 添加了docs/PROXY.md 代理配置指南
 - 更新 README.md 添加B站和公众号使用文档
 - 更新 tools/__init__.py 导出新模块
 
 ### 下一步计划
-1. 实现B站视频上传器 (Issue #2)
-2. 添加微信公众号发布支持 (Issue #1)
-3. 完善代理配置文档 (Issue #3)
-4. 推广项目到技术社区
+1. 在技术社区分享项目
+2. 写更多详细文档
+3. 添加更多平台支持
+4. 增加star数量
 
 ## Stars增长记录
 | 日期 | Stars | 备注 |
