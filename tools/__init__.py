@@ -35,6 +35,13 @@ from .bilibili_uploader import (
     BilibiliUploadResult,
     quick_upload as bilibili_quick_upload,
 )
+# 微信公众号发布器
+from .wechat_publisher import (
+    WechatPublisher,
+    WechatArticleMetadata,
+    WechatPublishResult,
+    quick_publish as wechat_quick_publish,
+)
 
 __all__ = [
     "AutoLogin",
@@ -57,4 +64,8 @@ __all__ = [
     "BilibiliVideoMetadata",
     "BilibiliUploadResult",
     "bilibili_quick_upload",
+    "WechatPublisher",
+    "WechatArticleMetadata",
+    "WechatPublishResult",
+    "wechat_quick_publish",
 ]

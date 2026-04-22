@@ -34,7 +34,7 @@
 | 小红书 | ✅ 可用 | 图文笔记发布 |
 | 快手 | ✅ 可用 | 视频上传发布 |
 | B站 | ✅ 可用 | 视频上传发布 |
-| 微信公众号 | 📋 计划中 | 文章发布 |
+| 微信公众号 | ✅ 可用 | 文章发布 |
 
 ## 🚀 快速开始
 
@@ -293,6 +293,33 @@ videos = [
     BilibiliVideoMetadata(file_path="video2.mp4", title="视频2"),
 ]
 results = uploader.upload_batch(videos, delay=10)
+```
+
+### 9. 微信公众号文章发布
+
+支持自动发布文章到微信公众号:
+```python
+from tools import WechatPublisher, WechatArticleMetadata
+
+# 准备文章元数据
+metadata = WechatArticleMetadata(
+    title="我的第一篇文章",
+    content="这是文章正文内容，支持HTML格式...",
+    author="作者名",
+    abstract="文章摘要...",
+    cover_image="/path/to/cover.jpg",
+    is_original=True,
+    need_open_comment=True,
+)
+
+# 发布文章
+publisher = WechatPublisher()
+publisher.set_driver(driver)  # 设置已登录的WebDriver
+result = publisher.publish(metadata)
+
+print(f"发布结果: {result.success}")
+if result.success:
+    print(f"文章ID: {result.article_id}")
 ```
 
 ## 🛠 技术栈

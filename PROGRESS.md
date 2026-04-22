@@ -22,13 +22,14 @@
 
 ### 待解决Issues
 - [x] Issue #2: 添加B站(Bilibili)视频上传支持 ✅ 已完成
-- [ ] Issue #1: 添加微信公众号文章发布支持
+- [x] Issue #1: 添加微信公众号文章发布支持 ✅ 已完成
 - [ ] Issue #3: 如何配置代理访问国内平台
 
 ### 本次更新
 - 添加了B站(bilibili_uploader.py)视频上传器 - 支持WebDriver和API两种模式
-- 更新 README.md 添加B站使用文档
-- 更新 tools/__init__.py 导出B站模块
+- 添加了微信公众号(wechat_publisher.py)文章发布器
+- 更新 README.md 添加B站和公众号使用文档
+- 更新 tools/__init__.py 导出新模块
 
 ### 下一步计划
 1. 实现B站视频上传器 (Issue #2)
