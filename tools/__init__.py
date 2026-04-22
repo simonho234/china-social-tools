@@ -28,6 +28,13 @@ from .kuaishou_uploader import (
     KuaishouUploadResult,
     quick_upload,
 )
+# B站上传器
+from .bilibili_uploader import (
+    BilibiliUploader,
+    BilibiliVideoMetadata,
+    BilibiliUploadResult,
+    quick_upload as bilibili_quick_upload,
+)
 
 __all__ = [
     "AutoLogin",
@@ -46,4 +53,8 @@ __all__ = [
     "KuaishouVideoMetadata",
     "KuaishouUploadResult",
     "quick_upload",
+    "BilibiliUploader",
+    "BilibiliVideoMetadata",
+    "BilibiliUploadResult",
+    "bilibili_quick_upload",
 ]

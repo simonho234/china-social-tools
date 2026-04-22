@@ -33,6 +33,7 @@
 | 抖音 | ✅ 可用 | 视频上传发布 |
 | 小红书 | ✅ 可用 | 图文笔记发布 |
 | 快手 | ✅ 可用 | 视频上传发布 |
+| B站 | ✅ 可用 | 视频上传发布 |
 | 微信公众号 | 📋 计划中 | 文章发布 |
 
 ## 🚀 快速开始
@@ -256,6 +257,42 @@ videos = [
     KuaishouVideoMetadata(file_path="video2.mp4", title="视频2"),
 ]
 results = uploader.upload_batch(videos, delay=5)
+```
+
+### 8. B站(Bilibili)视频上传
+
+支持自动上传视频到B站:
+```python
+from tools import BilibiliUploader, BilibiliVideoMetadata
+
+# 准备视频元数据
+metadata = BilibiliVideoMetadata(
+    file_path="/path/to/video.mp4",
+    title="我的视频",
+    description="这是测试视频内容",
+    tags=["测试", "教程", "科技"],
+    category="科技",
+    sub_category="计算机"
+)
+
+# 上传视频
+uploader = BilibiliUploader()
+uploader.set_driver(driver)  # 设置已登录的WebDriver
+result = uploader.upload(metadata)
+
+print(f"上传结果: {result.success}")
+if result.success:
+    print(f"BVID: {result.bvid}")
+    print(f"视频链接: {result.video_url}")
+```
+
+批量上传:
+```python
+videos = [
+    BilibiliVideoMetadata(file_path="video1.mp4", title="视频1"),
+    BilibiliVideoMetadata(file_path="video2.mp4", title="视频2"),
+]
+results = uploader.upload_batch(videos, delay=10)
 ```
 
 ## 🛠 技术栈
